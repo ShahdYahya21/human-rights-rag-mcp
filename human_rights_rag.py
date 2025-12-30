@@ -1,37 +1,56 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+
 import argparse
-import os
 import hashlib
 import json
 import os
 import re
 import time
-from typing import Any, Dict, List, Tuple
+from pathlib import Path
+from typing import Any, Dict, List
 from urllib.parse import urlparse, urlunparse
-import argparse
+
 import numpy as np
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-from dotenv import load_dotenv
-from pathlib import Path
+# Optional local .env support (safe in cloud)
+try:
+    from dotenv import load_dotenv
+except Exception:
+    load_dotenv = None
 
-# Load env vars from human_rights_crew/.env (relative to this file)
+# -----------------------------
+# Local dotenv (ONLY if exists)
+# -----------------------------
 ENV_PATH = Path(__file__).resolve().parent / "human_rights_crew" / ".env"
-load_dotenv(dotenv_path=ENV_PATH)
+if load_dotenv and ENV_PATH.exists():
+    load_dotenv(dotenv_path=ENV_PATH)
 
+# -----------------------------
+# Cleaning config
+# -----------------------------
 NOISE_PATTERNS = [
     "This site was archived on 2023-02-01 and is no longer receiving updates",
     "Links, accessibility, and other functionality may be limited.",
     "University of Minnesota Human Rights Library",
     "Human Rights Library",
 ]
-
 DROP_LINE_PREFIXES = {"home", "search", "contact", "copyright"}
 
 
+# -----------------------------
+# Simple caches (for speed)
+# -----------------------------
+_RAG_CACHE: Dict[str, Any] = {}     # out_dir -> (corpus, meta, index)
+_MODEL_CACHE: Dict[str, Any] = {}   # model_name -> SentenceTransformer
+
+
+# -----------------------------
+# Helpers
+# -----------------------------
 def canonicalize_url(url: str) -> str:
     """Normalize URLs so evaluation doesn't fail on tiny differences."""
     try:
@@ -130,6 +149,9 @@ def load_json(path: str) -> Any:
         return json.load(f)
 
 
+# -----------------------------
+# Build pipeline
+# -----------------------------
 def build_docs_from_csv(csv_path: str, out_dir: str, timeout: int = 20, sleep_s: float = 0.0):
     df = pd.read_csv(csv_path)
     if "URL" not in df.columns or "Title" not in df.columns:
@@ -147,15 +169,14 @@ def build_docs_from_csv(csv_path: str, out_dir: str, timeout: int = 20, sleep_s:
 
         cpath = cache_path(out_dir, url)
         if os.path.exists(cpath):
-            txt = open(cpath, "r", encoding="utf-8", errors="ignore").read().strip()
+            txt = Path(cpath).read_text(encoding="utf-8", errors="ignore").strip()
             if txt:
                 docs.append({"doc_id": int(i), "url": url, "title": title, "text": txt})
             continue
 
         print(f"[FETCH] {i}: {title} | {url}")
         txt = fetch_and_clean(session, url, timeout=timeout)
-        with open(cpath, "w", encoding="utf-8") as f:
-            f.write(txt)
+        Path(cpath).write_text(txt, encoding="utf-8")
 
         if txt:
             docs.append({"doc_id": int(i), "url": url, "title": title, "text": txt})
@@ -171,14 +192,16 @@ def build_corpus(docs, max_words=400, overlap=80):
     for d in docs:
         chunks = chunk_text(d["text"], max_words=max_words, overlap=overlap)
         for j, ch in enumerate(chunks):
-            corpus.append({
-                "doc_id": d["doc_id"],
-                "url": d["url"],
-                "url_norm": canonicalize_url(d["url"]),
-                "title": d["title"],
-                "chunk_id": j,
-                "text": ch
-            })
+            corpus.append(
+                {
+                    "doc_id": d["doc_id"],
+                    "url": d["url"],
+                    "url_norm": canonicalize_url(d["url"]),
+                    "title": d["title"],
+                    "chunk_id": j,
+                    "text": ch,
+                }
+            )
     return corpus
 
 
@@ -200,26 +223,60 @@ def embed_and_index(corpus, out_dir: str, model_name: str):
     index.add(emb)
 
     save_json(os.path.join(out_dir, "corpus.json"), corpus)
-    save_json(os.path.join(out_dir, "meta.json"), {"embedding_model": model_name, "dim": int(dim), "n_chunks": int(index.ntotal)})
+    save_json(
+        os.path.join(out_dir, "meta.json"),
+        {"embedding_model": model_name, "dim": int(dim), "n_chunks": int(index.ntotal)},
+    )
     faiss.write_index(index, os.path.join(out_dir, "index.faiss"))
 
     print("[OK] index saved to", os.path.join(out_dir, "index.faiss"))
 
 
-def load_index(out_dir: str):
+# -----------------------------
+# Fast load (cached)
+# -----------------------------
+def get_rag(out_dir: str):
+    """Load (corpus, meta, index) once per out_dir."""
+    if out_dir in _RAG_CACHE:
+        return _RAG_CACHE[out_dir]
+
     import faiss
-    corpus = load_json(os.path.join(out_dir, "corpus.json"))
-    meta = load_json(os.path.join(out_dir, "meta.json"))
-    index = faiss.read_index(os.path.join(out_dir, "index.faiss"))
+
+    corpus_path = os.path.join(out_dir, "corpus.json")
+    meta_path = os.path.join(out_dir, "meta.json")
+    index_path = os.path.join(out_dir, "index.faiss")
+
+    if not (os.path.exists(corpus_path) and os.path.exists(meta_path) and os.path.exists(index_path)):
+        raise FileNotFoundError(
+            f"Missing RAG files in out_dir='{out_dir}'.\n"
+            f"Expected:\n  - {corpus_path}\n  - {meta_path}\n  - {index_path}\n\n"
+            f"Run locally first:\n  python human_rights_rag.py build --csv \"Copy of human_rights_links-2.csv\" --out_dir {out_dir}\n"
+            f"Then commit/push '{out_dir}/' to your repo for cloud use (or build in cloud)."
+        )
+
+    corpus = load_json(corpus_path)
+    meta = load_json(meta_path)
+    index = faiss.read_index(index_path)
+
+    _RAG_CACHE[out_dir] = (corpus, meta, index)
     return corpus, meta, index
 
 
-def retrieve(query: str, out_dir: str, k: int = 5):
+def get_embed_model(model_name: str):
+    """Load embedding model once per model_name."""
+    if model_name in _MODEL_CACHE:
+        return _MODEL_CACHE[model_name]
     from sentence_transformers import SentenceTransformer
+    m = SentenceTransformer(model_name)
+    _MODEL_CACHE[model_name] = m
+    return m
+
+
+def retrieve(query: str, out_dir: str, k: int = 5):
     import faiss
 
-    corpus, meta, index = load_index(out_dir)
-    model = SentenceTransformer(meta["embedding_model"])
+    corpus, meta, index = get_rag(out_dir)
+    model = get_embed_model(meta["embedding_model"])
 
     q = model.encode([query], convert_to_numpy=True)
     faiss.normalize_L2(q)
@@ -230,49 +287,22 @@ def retrieve(query: str, out_dir: str, k: int = 5):
         if idx < 0:
             continue
         item = corpus[int(idx)]
-        results.append({
-            "rank": rank,
-            "score": float(D[0][rank]),
-            "title": item["title"],
-            "url": item["url"],
-            "url_norm": item["url_norm"],
-            "text": item["text"],
-        })
+        results.append(
+            {
+                "rank": rank,
+                "score": float(D[0][rank]),
+                "title": item["title"],
+                "url": item["url"],
+                "url_norm": item["url_norm"],
+                "text": item["text"],
+            }
+        )
     return results
 
 
-def eval_retrieval(test_set_path: str, out_dir: str, k: int = 5):
-    test_set = load_json(test_set_path)
-    success = 0
-    rrs = []
-    precisions = []
-
-    for ex in test_set:
-        q = ex["question"]
-        gold = ex.get("source_urls", ex.get("source_url"))
-        if isinstance(gold, str):
-            gold = [gold]
-        gold_norm = {canonicalize_url(u) for u in (gold or [])}
-
-        results = retrieve(q, out_dir=out_dir, k=k)
-        rel = [i for i, r in enumerate(results) if r["url_norm"] in gold_norm]
-
-        if rel:
-            success += 1
-            rrs.append(1.0 / (rel[0] + 1))
-        else:
-            rrs.append(0.0)
-
-        denom = max(1, min(k, len(results)))
-        precisions.append(len(rel) / denom)
-
-    n = len(test_set)
-    print(f"Questions    : {n}")
-    print(f"Success@{k}  : {success/n:.3f}")
-    print(f"MRR          : {sum(rrs)/n:.3f}")
-    print(f"Precision@{k}: {sum(precisions)/n:.3f}")
-
-
+# -----------------------------
+# Prompt + LLM
+# -----------------------------
 def build_context(chunks, max_chars=5000):
     parts = []
     total = 0
@@ -283,6 +313,7 @@ def build_context(chunks, max_chars=5000):
         parts.append(snippet)
         total += len(snippet)
     return "".join(parts)
+
 
 def make_prompt(question, retrieved_chunks):
     context = build_context(retrieved_chunks)
@@ -301,6 +332,7 @@ Question: {question}
 
 Answer:
 """.strip()
+
 
 def call_llm(prompt: str, provider: str, model: str) -> str:
     """
@@ -351,12 +383,12 @@ def call_llm(prompt: str, provider: str, model: str) -> str:
         print("[LLM ERROR]", repr(e))
         return ""
 
+
 def answer_question(question: str, k: int, out_dir: str, use_llm: bool, provider: str, model: str):
     retrieved = retrieve(question, out_dir=out_dir, k=k)
     if not retrieved:
         return "No results found in the index.", []
 
-    # retrieval-only baseline
     baseline = retrieved[0]["text"]
 
     if not use_llm:
@@ -365,17 +397,18 @@ def answer_question(question: str, k: int, out_dir: str, use_llm: bool, provider
     prompt = make_prompt(question, retrieved)
     ans = call_llm(prompt, provider=provider, model=model)
     if not ans:
-        # fallback if LLM fails
         return baseline, retrieved
 
     return ans, retrieved
 
 
-
+# -----------------------------
+# CLI commands
+# -----------------------------
 def cmd_build(args):
     print("[BUILD] starting")
     os.makedirs(args.out_dir, exist_ok=True)
-    print("[BUILD] out_dir created:", os.path.abspath(args.out_dir))
+    print("[BUILD] out_dir:", os.path.abspath(args.out_dir))
 
     docs = build_docs_from_csv(args.csv, args.out_dir, timeout=args.timeout, sleep_s=args.sleep)
     print("[BUILD] docs =", len(docs))
@@ -391,12 +424,12 @@ def cmd_ask(args):
     print("[ASK] starting")
 
     ans, res = answer_question(
-        args.question,
+        question=args.question,
         out_dir=args.out_dir,
         k=args.k,
         use_llm=args.use_llm,
         provider=args.provider,
-        model=args.model
+        model=args.model,
     )
 
     print("\nANSWER:")
@@ -408,11 +441,39 @@ def cmd_ask(args):
 
 
 def cmd_eval(args):
-    print("[EVAL] starting")
-    # eval_retrieval(args.test_set, out_dir=args.out_dir, k=args.k)
+    print("[EVAL] starting (retrieval-only)")
+    test_set = load_json(args.test_set)
+    success = 0
+    rrs = []
+    precisions = []
+
+    for ex in test_set:
+        q = ex["question"]
+        gold = ex.get("source_urls", ex.get("source_url"))
+        if isinstance(gold, str):
+            gold = [gold]
+        gold_norm = {canonicalize_url(u) for u in (gold or [])}
+
+        results = retrieve(q, out_dir=args.out_dir, k=args.k)
+        rel = [i for i, r in enumerate(results) if r["url_norm"] in gold_norm]
+
+        if rel:
+            success += 1
+            rrs.append(1.0 / (rel[0] + 1))
+        else:
+            rrs.append(0.0)
+
+        denom = max(1, min(args.k, len(results)))
+        precisions.append(len(rel) / denom)
+
+    n = len(test_set)
+    print(f"Questions    : {n}")
+    print(f"Success@{args.k}  : {success/n:.3f}")
+    print(f"MRR          : {sum(rrs)/n:.3f}")
+    print(f"Precision@{args.k}: {sum(precisions)/n:.3f}")
+
 
 def main():
-    print("[INFO] running:", __file__)
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
 
@@ -424,7 +485,7 @@ def main():
     b.add_argument("--sleep", type=float, default=0.0)
     b.add_argument("--max_words", type=int, default=400)
     b.add_argument("--overlap", type=int, default=80)
-    b.set_defaults(func=cmd_build)   # IMPORTANT
+    b.set_defaults(func=cmd_build)
 
     a = sub.add_parser("ask")
     a.add_argument("--out_dir", required=True)
@@ -435,17 +496,19 @@ def main():
     a.add_argument("--model", default="openai/gpt-4o-mini")
     a.set_defaults(func=cmd_ask)
 
-
     e = sub.add_parser("eval")
     e.add_argument("--out_dir", required=True)
     e.add_argument("--test_set", required=True)
     e.add_argument("--k", type=int, default=5)
-    e.set_defaults(func=cmd_eval)    # IMPORTANT
+    e.set_defaults(func=cmd_eval)
 
     args = ap.parse_args()
-    args.func(args)                  # IMPORTANT (this runs build/ask/eval)
+    args.func(args)
 
 
+# -----------------------------
+# MCP server entrypoint
+# -----------------------------
 def create_mcp_app():
     from fastmcp import FastMCP
 
@@ -460,6 +523,10 @@ def create_mcp_app():
         provider: str = "github_models",
         model: str = "openai/gpt-4o-mini",
     ) -> dict:
+        """
+        Ask a human-rights question using your RAG index + optional LLM.
+        Returns: {answer: str, sources: [...]}
+        """
         ans, res = answer_question(
             question=question,
             out_dir=out_dir,
@@ -472,11 +539,10 @@ def create_mcp_app():
 
     return m
 
-mcp = create_mcp_app()
 
+# FastMCP Cloud imports this: human_rights_rag.py:mcp
+mcp = create_mcp_app()
 
 
 if __name__ == "__main__":
     main()
-
-
