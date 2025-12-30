@@ -1,0 +1,242 @@
+[
+  {
+    "id": 1,
+    "question": "What right does Article 19 of the Universal Declaration of Human Rights protect?",
+    "gold_answer": "Article 19 protects the right to freedom of opinion and expression.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b1udhr.htm"
+  },
+  {
+    "id": 2,
+    "question": "What is the principle of non-refoulement under the 1951 Refugee Convention and its Protocol?",
+    "gold_answer": "Non-refoulement prohibits states from expelling or returning a refugee to a territory where their life or freedom would be threatened.",
+    "source_url": "http://hrlibrary.umn.edu/instree/v2prsr.htm"
+  },
+  {
+    "id": 3,
+    "question": "According to the Universal Declaration of Human Rights, what right is protected in Article 3?",
+    "gold_answer": "Article 3 protects the right to life, liberty and security of person.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b1udhr.htm"
+  },
+  {
+    "id": 4,
+    "question": "What does Article 4 of the Universal Declaration of Human Rights prohibit?",
+    "gold_answer": "Article 4 prohibits slavery and the slave trade in all their forms.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b1udhr.htm"
+  },
+  {
+    "id": 5,
+    "question": "Which right related to privacy is guaranteed in Article 12 of the Universal Declaration of Human Rights?",
+    "gold_answer": "Article 12 protects people from arbitrary interference with their privacy, family, home or correspondence and from attacks on their honour and reputation.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b1udhr.htm"
+  },
+  {
+    "id": 6,
+    "question": "What political participation right is recognised in Article 21 of the Universal Declaration of Human Rights?",
+    "gold_answer": "Article 21 recognises the right of everyone to take part in the government of their country, directly or through freely chosen representatives, and to have access to public service.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b1udhr.htm"
+  },
+  {
+    "id": 7,
+    "question": "What does Article 23 of the Universal Declaration of Human Rights say about the right to work?",
+    "gold_answer": "Article 23 recognises the right to work, to free choice of employment, to just and favourable conditions of work and to protection against unemployment.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b1udhr.htm"
+  },
+  {
+    "id": 8,
+    "question": "Which right to education is affirmed by Article 26 of the Universal Declaration of Human Rights?",
+    "gold_answer": "Article 26 affirms the right to education, which shall be free at least in the elementary and fundamental stages.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b1udhr.htm"
+  },
+  {
+    "id": 9,
+    "question": "What does Article 6 of the International Covenant on Civil and Political Rights say about the right to life?",
+    "gold_answer": "Article 6 recognises the inherent right to life and states that this right shall be protected by law and that no one shall be arbitrarily deprived of life.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b3ccpr.htm"
+  },
+  {
+    "id": 10,
+    "question": "According to Article 7 of the International Covenant on Civil and Political Rights, what treatment is prohibited?",
+    "gold_answer": "Article 7 prohibits torture and cruel, inhuman or degrading treatment or punishment, as well as non-consensual medical or scientific experimentation.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b3ccpr.htm"
+  },
+  {
+    "id": 11,
+    "question": "What safeguard against arbitrary detention is contained in Article 9 of the International Covenant on Civil and Political Rights?",
+    "gold_answer": "Article 9 guarantees the right to liberty and security of person and prohibits arbitrary arrest or detention.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b3ccpr.htm"
+  },
+  {
+    "id": 12,
+    "question": "Which fair trial guarantees are listed in Article 14 of the International Covenant on Civil and Political Rights?",
+    "gold_answer": "Article 14 guarantees a fair and public hearing by a competent, independent and impartial tribunal and minimum guarantees for anyone charged with a criminal offence.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b3ccpr.htm"
+  },
+  {
+    "id": 13,
+    "question": "What does Article 18 of the International Covenant on Civil and Political Rights protect?",
+    "gold_answer": "Article 18 protects freedom of thought, conscience and religion, including the freedom to have or adopt a religion or belief of one’s choice.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b3ccpr.htm"
+  },
+  {
+    "id": 14,
+    "question": "How does Article 19 of the International Covenant on Civil and Political Rights regulate freedom of expression?",
+    "gold_answer": "Article 19 guarantees freedom of expression but allows restrictions that are provided by law and are necessary for respect of the rights or reputations of others or for the protection of national security, public order, public health or morals.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b3ccpr.htm"
+  },
+  {
+    "id": 15,
+    "question": "What right to work is recognised in Article 6 of the International Covenant on Economic, Social and Cultural Rights?",
+    "gold_answer": "Article 6 recognises the right to work, including the right of everyone to the opportunity to gain their living by work which they freely choose or accept.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b2esc.htm"
+  },
+  {
+    "id": 16,
+    "question": "According to Article 9 of the International Covenant on Economic, Social and Cultural Rights, what social right is protected?",
+    "gold_answer": "Article 9 recognises the right of everyone to social security, including social insurance.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b2esc.htm"
+  },
+  {
+    "id": 17,
+    "question": "What does Article 11 of the International Covenant on Economic, Social and Cultural Rights say about the standard of living?",
+    "gold_answer": "Article 11 recognises the right of everyone to an adequate standard of living, including adequate food, clothing and housing, and to the continuous improvement of living conditions.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b2esc.htm"
+  },
+  {
+    "id": 18,
+    "question": "Which health-related right is guaranteed by Article 12 of the International Covenant on Economic, Social and Cultural Rights?",
+    "gold_answer": "Article 12 recognises the right of everyone to the enjoyment of the highest attainable standard of physical and mental health.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b2esc.htm"
+  },
+  {
+    "id": 19,
+    "question": "What does Article 13 of the International Covenant on Economic, Social and Cultural Rights say about education?",
+    "gold_answer": "Article 13 recognises the right of everyone to education and calls for primary education to be compulsory and free to all.",
+    "source_url": "http://hrlibrary.umn.edu/instree/b2esc.htm"
+  },
+  {
+    "id": 20,
+    "question": "What is the main objective of the Convention on the Elimination of All Forms of Discrimination against Women?",
+    "gold_answer": "CEDAW aims to eliminate discrimination against women in all fields and to ensure women’s equal enjoyment of human rights and fundamental freedoms.",
+    "source_url": "http://hrlibrary.umn.edu/instree/e1cedaw.htm"
+  },
+  {
+    "id": 21,
+    "question": "According to CEDAW, how should states address discrimination against women in political and public life?",
+    "gold_answer": "CEDAW requires states to guarantee women the right to vote, to be eligible for election and to participate in the formulation and implementation of government policy on equal terms with men.",
+    "source_url": "http://hrlibrary.umn.edu/instree/e1cedaw.htm"
+  },
+  {
+    "id": 22,
+    "question": "What does CEDAW say about discrimination against women in employment?",
+    "gold_answer": "CEDAW obliges states to eliminate discrimination against women in employment and to ensure equal rights regarding work, promotion, job security, remuneration and safe working conditions.",
+    "source_url": "http://hrlibrary.umn.edu/instree/e1cedaw.htm"
+  },
+  {
+    "id": 23,
+    "question": "According to the Convention on the Rights of the Child, what is the guiding principle in all actions concerning children?",
+    "gold_answer": "The best interests of the child shall be a primary consideration in all actions concerning children.",
+    "source_url": "http://hrlibrary.umn.edu/instree/k2crc.htm"
+  },
+  {
+    "id": 24,
+    "question": "What right to education is recognised in Article 28 of the Convention on the Rights of the Child?",
+    "gold_answer": "Article 28 recognises the right of the child to education and calls for primary education to be compulsory and available free to all.",
+    "source_url": "http://hrlibrary.umn.edu/instree/k2crc.htm"
+  },
+  {
+    "id": 25,
+    "question": "How does the Convention on the Rights of the Child protect children from economic exploitation?",
+    "gold_answer": "The Convention requires states to protect children from economic exploitation and from work that is likely to be hazardous, interfere with education or be harmful to their health or development.",
+    "source_url": "http://hrlibrary.umn.edu/instree/k2crc.htm"
+  },
+  {
+    "id": 26,
+    "question": "What does the Convention on the Rights of the Child say about the child’s right to be heard?",
+    "gold_answer": "The Convention recognises the right of the child to express their views freely in all matters affecting them, with those views being given due weight according to the child’s age and maturity.",
+    "source_url": "http://hrlibrary.umn.edu/instree/k2crc.htm"
+  },
+  {
+    "id": 27,
+    "question": "What is the core obligation under the Convention against Torture regarding the prohibition of torture?",
+    "gold_answer": "States must take effective legislative, administrative, judicial or other measures to prevent acts of torture in any territory under their jurisdiction.",
+    "source_url": "http://hrlibrary.umn.edu/instree/h2catoc.htm"
+  },
+  {
+    "id": 28,
+    "question": "How does the Convention against Torture address the return or extradition of a person to another state?",
+    "gold_answer": "The Convention prohibits expelling, returning or extraditing a person to another state where there are substantial grounds for believing they would be in danger of being subjected to torture.",
+    "source_url": "http://hrlibrary.umn.edu/instree/h2catoc.htm"
+  },
+  {
+    "id": 29,
+    "question": "What is the main purpose of the International Convention on the Elimination of All Forms of Racial Discrimination?",
+    "gold_answer": "CERD aims to eliminate racial discrimination in all its forms and to promote understanding among all races.",
+    "source_url": "http://hrlibrary.umn.edu/instree/d1cerd.htm"
+  },
+  {
+    "id": 30,
+    "question": "How does the International Convention on the Elimination of All Forms of Racial Discrimination define racial discrimination?",
+    "gold_answer": "It defines racial discrimination as any distinction, exclusion, restriction or preference based on race, colour, descent or national or ethnic origin that impairs equal enjoyment of human rights.",
+    "source_url": "http://hrlibrary.umn.edu/instree/d1cerd.htm"
+  },
+  {
+    "id": 31,
+    "question": "According to the 1951 Convention relating to the Status of Refugees, how is a refugee defined?",
+    "gold_answer": "A refugee is defined as a person who, owing to a well-founded fear of persecution for reasons such as race, religion, nationality, membership of a particular social group or political opinion, is outside their country of nationality and is unable or unwilling to avail themselves of that country’s protection.",
+    "source_url": "http://hrlibrary.umn.edu/instree/v1crs.htm"
+  },
+  {
+    "id": 32,
+    "question": "Under the Refugee Convention, what type of treatment should refugees receive with respect to access to courts?",
+    "gold_answer": "Refugees should have free access to the courts of law in the territory of the contracting states on the same terms as nationals.",
+    "source_url": "http://hrlibrary.umn.edu/instree/v1crs.htm"
+  },
+  {
+    "id": 33,
+    "question": "What is the general purpose of the Convention on the Rights of Persons with Disabilities?",
+    "gold_answer": "The Convention aims to promote, protect and ensure the full and equal enjoyment of all human rights by persons with disabilities and to promote respect for their inherent dignity.",
+    "source_url": "http://hrlibrary.umn.edu/instree/disability-convention2006.html"
+  },
+  {
+    "id": 34,
+    "question": "How does the Convention on the Rights of Persons with Disabilities address accessibility?",
+    "gold_answer": "It requires states to ensure accessibility to the physical environment, transportation, information and communications and other facilities and services open to the public.",
+    "source_url": "http://hrlibrary.umn.edu/instree/disability-convention2006.html"
+  },
+  {
+    "id": 35,
+    "question": "What is the focus of the International Convention on the Protection of the Rights of All Migrant Workers and Members of Their Families?",
+    "gold_answer": "The Convention protects the rights of migrant workers and their families, ensuring equality of treatment and protection from exploitation and abuse.",
+    "source_url": "http://hrlibrary.umn.edu/instree/n8icprmw.htm"
+  },
+  {
+    "id": 36,
+    "question": "According to the Convention on the Protection of the Rights of All Migrant Workers, how should migrant workers be treated in respect of their equality before the law?",
+    "gold_answer": "Migrant workers must enjoy equality before the courts and tribunals and be entitled to effective protection and remedies.",
+    "source_url": "http://hrlibrary.umn.edu/instree/n8icprmw.htm"
+  },
+  {
+    "id": 37,
+    "question": "What reference to human rights is found in the purposes of the United Nations Charter?",
+    "gold_answer": "The UN Charter states that one of the purposes of the United Nations is to promote and encourage respect for human rights and fundamental freedoms for all without distinction.",
+    "source_url": "http://hrlibrary.umn.edu/instree/auncharter.html"
+  },
+  {
+    "id": 38,
+    "question": "How does the United Nations Charter link international peace and security with human rights?",
+    "gold_answer": "The Charter links the maintenance of international peace and security with the promotion of respect for human rights and fundamental freedoms, recognising that they are mutually reinforcing.",
+    "source_url": "http://hrlibrary.umn.edu/instree/auncharter.html"
+  },
+  {
+    "id": 39,
+    "question": "What types of crimes fall under the jurisdiction of the International Criminal Court according to the Rome Statute?",
+    "gold_answer": "The Rome Statute gives the Court jurisdiction over the crime of genocide, crimes against humanity, war crimes and the crime of aggression.",
+    "source_url": "http://hrlibrary.umn.edu/instree/Rome_Statute_ICC/romestatute.html"
+  },
+  {
+    "id": 40,
+    "question": "How does the Rome Statute define crimes against humanity in general terms?",
+    "gold_answer": "Crimes against humanity are defined as certain acts, such as murder, enslavement and deportation, when committed as part of a widespread or systematic attack directed against any civilian population.",
+    "source_url": "http://hrlibrary.umn.edu/instree/Rome_Statute_ICC/romestatute.html"
+  }
+]
