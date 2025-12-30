@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+import asyncio
+import json
 import os
 from typing import Any, Dict, Optional
 
-import requests
+from fastmcp import Client
 from pydantic import BaseModel, Field
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
-# BaseTool import differs by CrewAI version
 try:
-    from crewai.tools import BaseTool  # newer
+    from crewai.tools import BaseTool  # newer CrewAI
 except Exception:
     from crewai_tools import BaseTool  # fallback
 
@@ -19,7 +20,7 @@ except Exception:
 def ensure_github_models_env() -> None:
     """
     CrewAI expects OPENAI_API_KEY even when using GitHub Models.
-    If user only has GITHUB_TOKEN, map it.
+    If you only have GITHUB_TOKEN, map it to OPENAI_API_KEY.
     """
     if not os.getenv("OPENAI_API_KEY"):
         gh = (os.getenv("GITHUB_TOKEN") or "").strip()
@@ -30,51 +31,47 @@ def ensure_github_models_env() -> None:
     os.environ.setdefault("OPENAI_MODEL_NAME", "openai/gpt-4o-mini")
 
 
-def _get_mcp_base_url() -> str:
+def _run_async(coro):
     """
-    Converts MCP endpoint like:
-      https://xxx.fastmcp.app/mcp
-    into HTTP tool base:
-      https://xxx.fastmcp.app
+    Python 3.12-safe: always create and run a fresh event loop.
+    Avoids 'There is no current event loop' warnings and hanging behavior.
     """
-    url = (os.getenv("MCP_URL") or "").strip().rstrip("/")
-    if not url:
+    return asyncio.run(coro)
+
+
+async def _mcp_call(tool: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Call MCP tool via MCP protocol (NOT HTTP /tools/...).
+    Adds a hard timeout to avoid 'stuck' runs.
+    """
+    mcp_url = (os.getenv("MCP_URL") or "").strip()
+    if not mcp_url:
         raise RuntimeError("MCP_URL is not set.")
 
-    if url.endswith("/mcp"):
-        url = url[:-4].rstrip("/")
+    async def _do_call():
+        async with Client(mcp_url) as c:
+            r = await c.call_tool(tool, payload)
+            if not getattr(r, "content", None):
+                return {"answer": "", "sources": []}
 
-    if not (url.startswith("http://") or url.startswith("https://")):
-        raise RuntimeError(f"Invalid MCP_URL: {url}. Must start with http:// or https://")
+            text = r.content[0].text
+            try:
+                return json.loads(text)
+            except Exception:
+                return {"answer": text, "sources": []}
 
-    return url
-
-
-def _call_http_tool(tool: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    FastMCP Cloud exposes tools over HTTP typically at:
-      {base}/tools/{tool}
-    """
-    base = _get_mcp_base_url()
-    endpoint = f"{base}/tools/{tool}"
-
-    r = requests.post(endpoint, json=payload, timeout=120)
-    r.raise_for_status()
-
-    data = r.json()
-    if isinstance(data, dict):
-        return data
-    return {"result": data}
+    # ⏱️ hard timeout (seconds)
+    return await asyncio.wait_for(_do_call(), timeout=45)
 
 
 class RagAskInput(BaseModel):
     question: str = Field(..., description="User question about human rights instruments.")
     out_dir: str = Field(default="rag_out", description="Index output directory.")
     k: int = Field(default=8, description="Top-k retrieved chunks.")
-    use_llm: bool = Field(default=True, description="Whether tool uses LLM.")
-    provider: str = Field(default="github_models", description="Provider.")
-    model: str = Field(default="openai/gpt-4o-mini", description="Model.")
-    article: Optional[int] = Field(default=None, description="Optional article number.")
+    use_llm: bool = Field(default=True, description="Whether tool uses LLM to format answer.")
+    provider: str = Field(default="github_models", description="Provider used by MCP tool.")
+    model: str = Field(default="openai/gpt-4o-mini", description="Model used by MCP tool.")
+    article: Optional[int] = Field(default=None, description="Optional article number (e.g., 19).")
 
 
 class RagAskTool(BaseTool):
@@ -92,18 +89,16 @@ class RagAskTool(BaseTool):
         model: str = "openai/gpt-4o-mini",
         article: Optional[int] = None,
     ) -> Dict[str, Any]:
-        return _call_http_tool(
-            "rag_ask",
-            {
-                "question": question,
-                "out_dir": out_dir,
-                "k": k,
-                "use_llm": use_llm,
-                "provider": provider,
-                "model": model,
-                "article": article,
-            },
-        )
+        payload = {
+            "question": question,
+            "out_dir": out_dir,
+            "k": k,
+            "use_llm": use_llm,
+            "provider": provider,
+            "model": model,
+            "article": article,
+        }
+        return _run_async(_mcp_call("rag_ask", payload))
 
 
 @CrewBase
@@ -130,6 +125,7 @@ class HumanRightsCrew:
             goal=cfg.get("goal"),
             backstory=cfg.get("backstory"),
             verbose=bool(cfg.get("verbose", True)),
+            # No tools here: writer only uses evidence from context
         )
 
     @task
